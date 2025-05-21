@@ -1,33 +1,44 @@
-HELP.md
+# ========== Java / Maven ==========
 target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+.mvn
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+# ========== IntelliJ IDEA ==========
+.idea/
 *.iml
+*.iws
+out/
+
+# IntelliJ module files
 *.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+# ========== Logs ==========
+*.log
 
-### VS Code ###
+# ========== OS files ==========
+.DS_Store
+Thumbs.db
+
+# ========== Environment Files ==========
+.env
+.env.*
+
+# ========== Spring Boot Specific ==========
+# Spring Boot devtools classpath file
+.spring-boot-devtools.properties
+
+# ========== Local Maven Repository Cache (Optional) ==========
+# Uncomment if you want to ignore local .m2 directory (not recommended generally)
+# .m2/
+
+# ========== VSCode (if applicable) ==========
 .vscode/
+
+# ========== Test Reports ==========
+surefire-reports/
+jacoco.exec
+
+# ========== IDE or Tool Config ==========
+*.swp
+*.swo
+*.bak
+*.tmp
