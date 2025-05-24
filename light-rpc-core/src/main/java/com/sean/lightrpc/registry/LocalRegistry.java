@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LocalRegistry {
 
     /**
-     * Store serviceName - serviceClassName mapping pairs
+     * Store serviceName - serviceClass mapping pairs
      */
     private static final Map<String, Class<?>> map = new ConcurrentHashMap<>();
 

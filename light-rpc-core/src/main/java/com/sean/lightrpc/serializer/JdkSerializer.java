@@ -1,7 +1,10 @@
 package com.sean.lightrpc.serializer;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.*;
 
+@Slf4j
 public class JdkSerializer implements Serializer {
 
     @Override
@@ -34,15 +37,19 @@ public class JdkSerializer implements Serializer {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T deserialize(byte[] bytes, Class<T> clazz) throws IOException {
         try (
                 ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
                 ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)
         ) {
-            return (T) objectInputStream.readObject();
+            Object obj = objectInputStream.readObject();
+            if (!clazz.isInstance(obj)) {
+                throw new ClassNotFoundException("Deserialized object is not of type " + clazz.getName());
+            }
+            return clazz.cast(obj);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            log.info("Deserialized object type not match: {}", e.getMessage());
         }
+        return null;
     }
 }
