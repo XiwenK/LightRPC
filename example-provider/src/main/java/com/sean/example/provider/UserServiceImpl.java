@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 public class UserServiceImpl implements UserService {
 
     public User getUser(User user) {
-        log.info("RPC: do get user method");
-        System.out.println("Username: " + user.getName());
+        log.info("RPC for getUser method");
+        log.info("Username: {}", user.getName());
         return user;
     }
 }
