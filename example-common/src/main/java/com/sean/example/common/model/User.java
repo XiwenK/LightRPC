@@ -1,10 +1,9 @@
 package com.sean.example.common.model;
 
-import lombok.Getter;
-
+import lombok.Data;
 import java.io.Serializable;
 
-@Getter
+@Data
 public class User implements Serializable {
 
     private String name;

@@ -20,9 +20,9 @@ public class VertxHttpServer implements HttpServer {
         // start HTTP server and listen specified port
         server.listen(port, res -> {
             if (res.succeeded()) {
-                log.info("http server started on port {}", port);
+                log.info("Vertx HTTP server started on port {}", port);
             } else {
-                log.error("http server start error", res.cause());
+                log.error("Vertx HTTP server start error", res.cause());
             }
         });
     }

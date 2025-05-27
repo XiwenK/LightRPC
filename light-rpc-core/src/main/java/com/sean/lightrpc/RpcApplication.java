@@ -37,6 +37,7 @@ public class RpcApplication {
     }
 
     public static void init() {
+        // either load from config files or use default one
         RpcConfig newRpcConfig = null;
         try {
             newRpcConfig = ConfigUtils.loadConfig(RpcConfig.class, RpcConstant.DEFAULT_CONFIG_PREFIX, "");
