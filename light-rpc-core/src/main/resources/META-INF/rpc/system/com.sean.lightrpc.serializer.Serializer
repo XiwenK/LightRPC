@@ -1,0 +1,4 @@
+jdk=com.sean.lightrpc.serializer.JdkSerializer
+hessian=com.sean.lightrpc.serializer.HessianSerializer
+json=com.sean.lightrpc.serializer.JsonSerializer
+kryo=com.sean.lightrpc.serializer.KryoSerializer
