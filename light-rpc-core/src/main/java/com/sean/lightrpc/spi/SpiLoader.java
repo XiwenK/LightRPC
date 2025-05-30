@@ -126,4 +126,17 @@ public class SpiLoader {
             load(aClass);
         }
     }
+
+    /**
+     * Test for SPI file loading
+     */
+    public static void main(String[] args) {
+        loadAll();
+        for (Map.Entry<String, Map<String, Class<?>>> entry : loaderMap.entrySet()) {
+            Map<String, Class<?>> keyClassMap = entry.getValue();
+            for (Map.Entry<String, Class<?>> e : keyClassMap.entrySet()) {
+                System.out.println(e.getKey() + ": " + e.getValue().getName());
+            }
+        }
+    }
 }

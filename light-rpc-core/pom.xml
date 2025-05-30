@@ -11,6 +11,25 @@
 
     <artifactId>light-rpc-core</artifactId>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- compulsory use this version for Netty module, otherwise vertx-core dependency will show warning -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>4.1.118.Final</version> <!-- safe version -->
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- compulsory use this version for protobuf module, otherwise jetcd-core dependency will show warning -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>4.28.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <!-- Framework Basic -->
         <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
@@ -49,6 +68,12 @@
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>5.6.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.etcd/jetcd-core -->
+        <dependency>
+            <groupId>io.etcd</groupId>
+            <artifactId>jetcd-core</artifactId>
+            <version>0.7.7</version>
         </dependency>
 
     </dependencies>

@@ -1,10 +1,12 @@
 package com.sean.lightrpc.server;
 
+import com.sean.lightrpc.RpcApplication;
 import com.sean.lightrpc.model.RpcRequest;
 import com.sean.lightrpc.model.RpcResponse;
 import com.sean.lightrpc.registry.LocalRegistry;
 import com.sean.lightrpc.serializer.JdkSerializer;
 import com.sean.lightrpc.serializer.Serializer;
+import com.sean.lightrpc.serializer.SerializerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
@@ -27,8 +29,8 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
      */
     @Override
     public void handle(HttpServerRequest request) {
-        // create serializer
-        final Serializer serializer = new JdkSerializer();
+        // Get serializer
+        final Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
 
         log.info("Received request: {} {}", request.method(), request.uri());
 

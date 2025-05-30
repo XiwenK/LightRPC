@@ -1,11 +1,12 @@
 package com.sean.lightrpc;
 
+import com.sean.lightrpc.config.RegistryConfig;
 import com.sean.lightrpc.config.RpcConfig;
 import com.sean.lightrpc.constant.RpcConstant;
+import com.sean.lightrpc.registry.Registry;
+import com.sean.lightrpc.registry.RegistryFactory;
 import com.sean.lightrpc.utils.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
-
-import java.rmi.registry.Registry;
 
 /**
  *  Framework Boot Entrance
@@ -28,12 +29,14 @@ public class RpcApplication {
         log.info("RPC Init, config = {}", newRpcConfig.toString());
         
         // Registry Config Initialization
-        // RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
-        // Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
-        // registry.init(registryConfig);
-        // log.info("registry init, config = {}", registryConfig);
-        // 创建并注册 Shutdown Hook，JVM 退出时执行操作
-        // Runtime.getRuntime().addShutdownHook(new Thread(registry::destroy));
+        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
+        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
+        registry.init(registryConfig);
+        log.info("Registry init, config = {}", registryConfig);
+
+        // Create and register Shutdown Hook，do operations when JVM shutdown
+        // Gracefully shutdown registry when JVM shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread(registry::destroy));
     }
 
     public static void init() {
