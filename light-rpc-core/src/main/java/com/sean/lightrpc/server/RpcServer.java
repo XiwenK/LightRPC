@@ -3,7 +3,7 @@ package com.sean.lightrpc.server;
 /**
  *  Service Provider Side Package
  */
-public interface HttpServer {
+public interface RpcServer {
 
     /**
      * Start server

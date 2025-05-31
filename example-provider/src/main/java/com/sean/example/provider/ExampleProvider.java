@@ -4,16 +4,13 @@ import com.sean.example.common.service.UserService;
 import com.sean.lightrpc.RpcApplication;
 import com.sean.lightrpc.config.RpcConfig;
 import com.sean.lightrpc.model.ServiceMetaInfo;
-import com.sean.lightrpc.model.ServiceRegisterInfo;
 import com.sean.lightrpc.registry.LocalRegistry;
 import com.sean.lightrpc.registry.Registry;
 import com.sean.lightrpc.registry.RegistryFactory;
-import com.sean.lightrpc.server.HttpServer;
+import com.sean.lightrpc.server.RpcServer;
 import com.sean.lightrpc.server.VertxHttpServer;
+import com.sean.lightrpc.server.tcp.VertxTcpServer;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *  Example Provider for easy RPC call implementation
@@ -26,10 +23,10 @@ public class ExampleProvider {
         RpcApplication.init();
         RpcConfig rpcConfig = RpcApplication.getRpcConfig();
 
-        // Local registry
+        // Local registry (used for RPC method call execution)
         LocalRegistry.register(UserService.class.getName(), UserServiceImpl.class);
 
-        // Distributed Registry
+        // Distributed Registry (used for consumer service discovery)
         Registry registry = RegistryFactory.getInstance(rpcConfig.getRegistryConfig().getRegistry());
 
         ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();
@@ -44,7 +41,10 @@ public class ExampleProvider {
         }
 
         // Start vertx HTTP server
-        HttpServer httpServer = new VertxHttpServer();
-        httpServer.doStart(rpcConfig.getServerPort());
+        // RpcServer rpcServer = new VertxHttpServer();
+
+        // Start vertx TCP server
+        RpcServer rpcServer = new VertxTcpServer();
+        rpcServer.doStart(rpcConfig.getServerPort());
     }
 }

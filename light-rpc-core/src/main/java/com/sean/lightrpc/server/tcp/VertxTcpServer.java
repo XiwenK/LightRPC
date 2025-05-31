@@ -1,21 +1,23 @@
-package com.sean.lightrpc.server;
+package com.sean.lightrpc.server.tcp;
 
+import com.sean.lightrpc.server.RpcServer;
 import io.vertx.core.Vertx;
+import io.vertx.core.net.NetServer;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class VertxHttpServer implements RpcServer {
+public class VertxTcpServer implements RpcServer {
 
     @Override
     public void doStart(int port) {
         // create vertx instance
         Vertx vertx = Vertx.vertx();
 
-        // create HTTP server instance
-        io.vertx.core.http.HttpServer server = vertx.createHttpServer();
+        // create TCP server instance
+        NetServer server = vertx.createNetServer();
 
-        // Binding request handler
-        server.requestHandler(new HttpServerHandler());
+        // Binding TCP connection handler
+        server.connectHandler(new TcpServerHandler());
 
         // start HTTP server and listen specified port
         server.listen(port, res -> {

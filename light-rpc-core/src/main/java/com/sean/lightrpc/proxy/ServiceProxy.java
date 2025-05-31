@@ -15,6 +15,7 @@ import com.sean.lightrpc.registry.RegistryFactory;
 import com.sean.lightrpc.serializer.JdkSerializer;
 import com.sean.lightrpc.serializer.Serializer;
 import com.sean.lightrpc.serializer.SerializerFactory;
+import com.sean.lightrpc.server.tcp.VertxTcpClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -57,29 +58,40 @@ public class ServiceProxy implements InvocationHandler {
             return null;
         }
 
-        // TODO: Load Balancer to select service provider node
-        String serviceAddress = serviceMetaInfoList.get(0).getServiceAddress();
-        if (StrUtil.isBlank(serviceAddress)) {
-            log.info("Service provider currently not available for {}", serviceName);
-            return null;
-        }
+        /* This code slot is the logic to do HTTP RPC request
 
-        // Get serializer
-        Serializer serializer = SerializerFactory.getInstance(rpcConfig.getSerializer());
-        byte[] bodyBytes = serializer.serialize(rpcRequest);
+           String serviceAddress = serviceMetaInfoList.get(0).getServiceAddress();
+           if (StrUtil.isBlank(serviceAddress)) {
+               log.info("Service provider currently not available for {}", serviceName);
+               return null;
+            }
 
-        /* Serialize RpcRequest body and send HTTP Request
-           Receive HTTP response and deserialize RpcResponse body
+            // Get serializer
+            Serializer serializer = SerializerFactory.getInstance(rpcConfig.getSerializer());
+            byte[] bodyBytes = serializer.serialize(rpcRequest);
+
+            // Serialize RpcRequest body and send HTTP Request
+            // Receive HTTP response and deserialize RpcResponse body
+
+            try (HttpResponse httpResponse = HttpRequest.post(serviceAddress)
+                    .body(bodyBytes)
+                    .execute())
+            {
+                byte[] result = httpResponse.bodyBytes();
+                RpcResponse rpcResponse = serializer.deserialize(result, RpcResponse.class);
+                return rpcResponse.getData();
+            } catch (IOException e) {
+                log.info("RpcRequest error:{}", e.getMessage());
+            }
          */
-        try (HttpResponse httpResponse = HttpRequest.post(serviceAddress)
-                .body(bodyBytes)
-                .execute())
-        {
-            byte[] result = httpResponse.bodyBytes();
-            RpcResponse rpcResponse = serializer.deserialize(result, RpcResponse.class);
+
+        // TCP doRequest and get response
+        ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
+        try {
+            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
             return rpcResponse.getData();
-        } catch (IOException e) {
-            log.info("RpcRequest error:{}", e.getMessage());
+        } catch (Exception e) {
+            log.info("Do TCP RPC request failed: {}", e.getMessage());
         }
 
         return null;
