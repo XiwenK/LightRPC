@@ -1,0 +1,3 @@
+roundRobin=com.sean.lightrpc.loadbalancer.RoundRobinLoadBalancer
+random=com.sean.lightrpc.loadbalancer.RandomLoadBalancer
+consistentHash=com.sean.lightrpc.loadbalancer.ConsistentHashLoadBalancer

@@ -7,12 +7,17 @@ import cn.hutool.http.HttpResponse;
 import com.sean.lightrpc.RpcApplication;
 import com.sean.lightrpc.config.RpcConfig;
 import com.sean.lightrpc.constant.RpcConstant;
+import com.sean.lightrpc.fault.retry.RetryStrategy;
+import com.sean.lightrpc.fault.retry.RetryStrategyFactory;
+import com.sean.lightrpc.fault.tolerant.TolerantStrategy;
+import com.sean.lightrpc.fault.tolerant.TolerantStrategyFactory;
+import com.sean.lightrpc.loadbalancer.LoadBalancer;
+import com.sean.lightrpc.loadbalancer.LoadBalancerFactory;
 import com.sean.lightrpc.model.RpcRequest;
 import com.sean.lightrpc.model.RpcResponse;
 import com.sean.lightrpc.model.ServiceMetaInfo;
 import com.sean.lightrpc.registry.Registry;
 import com.sean.lightrpc.registry.RegistryFactory;
-import com.sean.lightrpc.serializer.JdkSerializer;
 import com.sean.lightrpc.serializer.Serializer;
 import com.sean.lightrpc.serializer.SerializerFactory;
 import com.sean.lightrpc.server.tcp.VertxTcpClient;
@@ -21,7 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *  Service Proxy (Dynamic Proxy)
@@ -58,42 +65,58 @@ public class ServiceProxy implements InvocationHandler {
             return null;
         }
 
-        /* This code slot is the logic to do HTTP RPC request
+        // Get loadBalancer instance to select service provider
+        LoadBalancer loadBalancer = LoadBalancerFactory.getInstance(rpcConfig.getLoadBalancer());
 
-           String serviceAddress = serviceMetaInfoList.get(0).getServiceAddress();
-           if (StrUtil.isBlank(serviceAddress)) {
-               log.info("Service provider currently not available for {}", serviceName);
-               return null;
-            }
+        Map<String, Object> requestParams = new HashMap<>();
+        requestParams.put("methodName", rpcRequest.getMethodName());
 
-            // Get serializer
-            Serializer serializer = SerializerFactory.getInstance(rpcConfig.getSerializer());
-            byte[] bodyBytes = serializer.serialize(rpcRequest);
+        ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
+        log.info("Selected service meta info: {}", selectedServiceMetaInfo.toString());
 
-            // Serialize RpcRequest body and send HTTP Request
-            // Receive HTTP response and deserialize RpcResponse body
-
-            try (HttpResponse httpResponse = HttpRequest.post(serviceAddress)
-                    .body(bodyBytes)
-                    .execute())
-            {
-                byte[] result = httpResponse.bodyBytes();
-                RpcResponse rpcResponse = serializer.deserialize(result, RpcResponse.class);
-                return rpcResponse.getData();
-            } catch (IOException e) {
-                log.info("RpcRequest error:{}", e.getMessage());
-            }
+        /* Used for HTTP Request
+         *  Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
+         *  byte[] bodyBytes = serializer.serialize(rpcRequest);
          */
 
-        // TCP doRequest and get response
-        ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
+        RpcResponse rpcResponse;
         try {
-            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
-            return rpcResponse.getData();
+            // Set retry strategy, after which tolerant strategy will be triggered
+            RetryStrategy retryStrategy = RetryStrategyFactory.getInstance(rpcConfig.getRetryStrategy());
+
+            // Do HTTP Request
+            // rpcResponse = retryStrategy.doRetry(() -> doHttpRequest(selectedServiceMetaInfo, bodyBytes, serializer));
+
+            // Do TCP Request
+            rpcResponse = retryStrategy.doRetry(() ->
+                    VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo)
+            );
         } catch (Exception e) {
-            log.info("Do TCP RPC request failed: {}", e.getMessage());
+            // Trigger tolerant strategy
+            TolerantStrategy tolerantStrategy = TolerantStrategyFactory.getInstance(rpcConfig.getTolerantStrategy());
+            rpcResponse = tolerantStrategy.doTolerant(null, e);
         }
 
-        return null;
+        return rpcResponse.getData();
+    }
+
+    /**
+     * Do HTTP Request
+     */
+    private static RpcResponse doHttpRequest(ServiceMetaInfo selectedServiceMetaInfo, byte[] bodyBytes, Serializer serializer) throws IOException {
+        String serviceAddress = selectedServiceMetaInfo.getServiceAddress();
+
+        if (StrUtil.isBlank(serviceAddress)) {
+            log.info("Service provider currently not available for {}", selectedServiceMetaInfo);
+            throw new RuntimeException("Service provider currently not available for: " + selectedServiceMetaInfo);
+        }
+
+        // Send HTTP Request
+        try (HttpResponse httpResponse = HttpRequest.post(selectedServiceMetaInfo.getServiceAddress())
+                .body(bodyBytes)
+                .execute()) {
+            byte[] result = httpResponse.bodyBytes();
+            return serializer.deserialize(result, RpcResponse.class);
+        }
     }
 }

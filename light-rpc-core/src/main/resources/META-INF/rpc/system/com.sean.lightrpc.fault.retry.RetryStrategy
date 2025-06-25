@@ -1,0 +1,2 @@
+no=com.sean.lightrpc.fault.retry.NoRetryStrategy
+fixedInterval=com.sean.lightrpc.fault.retry.FixedIntervalRetryStrategy
