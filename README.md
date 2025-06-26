@@ -7,6 +7,7 @@ Notable Features:
 - Etcd registry and Vertx server
 
 Architecture Diagram:
+![./RPC_framework_diagram.png]
 
 
 
